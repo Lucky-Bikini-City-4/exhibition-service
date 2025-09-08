@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: exhibition-service
+
+  profiles:
+    active: dev
+
+
