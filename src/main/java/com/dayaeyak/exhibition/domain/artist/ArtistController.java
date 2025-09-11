@@ -1,0 +1,59 @@
+package com.dayaeyak.exhibition.domain.artist;
+
+import com.dayaeyak.exhibition.common.entity.ApiResponse;
+import com.dayaeyak.exhibition.domain.artist.dto.request.ArtistCreateRequestDto;
+import com.dayaeyak.exhibition.domain.artist.dto.request.ArtistUpdateRequestDto;
+import com.dayaeyak.exhibition.domain.artist.dto.response.ArtistCreateResponseDto;
+import com.dayaeyak.exhibition.domain.artist.dto.response.ArtistSearchPageResponseDto;
+import com.dayaeyak.exhibition.domain.artist.dto.response.ArtistUpdateResponseDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/artists")
+@RequiredArgsConstructor
+public class ArtistController {
+
+    private final ArtistService artistService;
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<ArtistCreateResponseDto>> createArtist(
+            @RequestBody ArtistCreateRequestDto artistCreateRequestDto
+    ) {
+        ArtistCreateResponseDto data = artistService.createArtist(artistCreateRequestDto);
+
+        return ApiResponse.success(HttpStatus.CREATED, "", data);
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<ArtistSearchPageResponseDto>> searchArtist(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String name
+    ) {
+        ArtistSearchPageResponseDto data = artistService.searchArtistPage(page, size, name);
+
+        return ApiResponse.success(HttpStatus.OK, "", data);
+    }
+
+    @PatchMapping("/{artistId}")
+    public ResponseEntity<ApiResponse<ArtistUpdateResponseDto>> updateArtist(
+            @PathVariable Long artistId,
+            @RequestBody ArtistUpdateRequestDto artistUpdateRequestDto
+    ) {
+        ArtistUpdateResponseDto data = artistService.updateArtist(artistId, artistUpdateRequestDto);
+
+        return ApiResponse.success(HttpStatus.OK, "", data);
+    }
+
+    @DeleteMapping("/{artistId}")
+    public ResponseEntity<ApiResponse<Void>> deleteArtist(
+            @PathVariable Long artistId
+    ) {
+        artistService.deleteArtist(artistId);
+
+        return ApiResponse.success(HttpStatus.OK, "");
+    }
+}

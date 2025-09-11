@@ -1,10 +1,12 @@
 package com.dayaeyak.exhibition.domain.artist;
 
 import com.dayaeyak.exhibition.common.entity.BaseEntity;
+import com.dayaeyak.exhibition.domain.artist.dto.request.ArtistUpdateRequestDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.StringUtils;
 
 @Entity
 @Table(name = "artists")
@@ -17,10 +19,20 @@ public class Artist extends BaseEntity {
     @Column(name = "artist_id")
     private Long id;
 
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, unique = true, length = 30)
     private String name;
 
     public Artist(String name) {
         this.name = name;
+    }
+
+    public void update(ArtistUpdateRequestDto dto) {
+        updateName(dto.name());
+    }
+
+    private void updateName(String name) {
+        if (StringUtils.hasText(name)) {
+            this.name = name;
+        }
     }
 }
