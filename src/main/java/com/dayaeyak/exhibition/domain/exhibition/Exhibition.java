@@ -64,8 +64,8 @@ public class Exhibition extends BaseEntity {
     private LocalDateTime ticketClosedAt;
 
     @Column(nullable = false)
-    @ColumnDefault("false")
-    private Boolean isActivated = false;
+    @ColumnDefault("true")
+    private Boolean isActivated = true;
 
     @Builder
     public Exhibition(
