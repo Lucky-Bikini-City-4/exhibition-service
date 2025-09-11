@@ -9,6 +9,7 @@ import com.dayaeyak.exhibition.domain.exhibition.jpa.ExhibitionArtistJpaReposito
 import com.dayaeyak.exhibition.domain.exhibition.jpa.ExhibitionJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -22,6 +23,7 @@ public class ExhibitionInternalService {
     private final ExhibitionJpaRepository exhibitionJpaRepository;
     private final ExhibitionArtistJpaRepository exhibitionArtistJpaRepository;
 
+    @Transactional
     public ExhibitionCreateResponseDto createExhibition(ExhibitionCreateRequestDto dto) {
         Exhibition exhibition = Exhibition.builder()
                 .sellerId(dto.sellerId())
