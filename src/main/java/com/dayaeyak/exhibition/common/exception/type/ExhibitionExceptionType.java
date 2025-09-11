@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ExhibitionExceptionType implements ExceptionType{
 
+    EXHIBITION_NOT_FOUND(HttpStatus.NOT_FOUND, "전시회 정보를 찾지 못했습니다."),
     ;
 
     private final HttpStatus status;
