@@ -1,11 +1,13 @@
 package com.dayaeyak.exhibition.domain.artist;
 
 import com.dayaeyak.exhibition.common.entity.ApiResponse;
+import com.dayaeyak.exhibition.domain.artist.constraints.ArtistResponseMessage;
 import com.dayaeyak.exhibition.domain.artist.dto.request.ArtistCreateRequestDto;
 import com.dayaeyak.exhibition.domain.artist.dto.request.ArtistUpdateRequestDto;
 import com.dayaeyak.exhibition.domain.artist.dto.response.ArtistCreateResponseDto;
 import com.dayaeyak.exhibition.domain.artist.dto.response.ArtistSearchPageResponseDto;
 import com.dayaeyak.exhibition.domain.artist.dto.response.ArtistUpdateResponseDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +22,11 @@ public class ArtistController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<ArtistCreateResponseDto>> createArtist(
-            @RequestBody ArtistCreateRequestDto artistCreateRequestDto
+            @RequestBody @Valid ArtistCreateRequestDto artistCreateRequestDto
     ) {
         ArtistCreateResponseDto data = artistService.createArtist(artistCreateRequestDto);
 
-        return ApiResponse.success(HttpStatus.CREATED, "", data);
+        return ApiResponse.success(HttpStatus.CREATED, ArtistResponseMessage.ARTIST_CREATE_SUCCESS, data);
     }
 
     @GetMapping
@@ -35,17 +37,17 @@ public class ArtistController {
     ) {
         ArtistSearchPageResponseDto data = artistService.searchArtistPage(page, size, name);
 
-        return ApiResponse.success(HttpStatus.OK, "", data);
+        return ApiResponse.success(HttpStatus.OK, ArtistResponseMessage.ARTIST_SEARCH_SUCCESS, data);
     }
 
     @PatchMapping("/{artistId}")
     public ResponseEntity<ApiResponse<ArtistUpdateResponseDto>> updateArtist(
             @PathVariable Long artistId,
-            @RequestBody ArtistUpdateRequestDto artistUpdateRequestDto
+            @RequestBody @Valid ArtistUpdateRequestDto artistUpdateRequestDto
     ) {
         ArtistUpdateResponseDto data = artistService.updateArtist(artistId, artistUpdateRequestDto);
 
-        return ApiResponse.success(HttpStatus.OK, "", data);
+        return ApiResponse.success(HttpStatus.OK, ArtistResponseMessage.ARTIST_UPDATE_SUCCESS, data);
     }
 
     @DeleteMapping("/{artistId}")
@@ -54,6 +56,6 @@ public class ArtistController {
     ) {
         artistService.deleteArtist(artistId);
 
-        return ApiResponse.success(HttpStatus.OK, "");
+        return ApiResponse.success(HttpStatus.OK, ArtistResponseMessage.ARTIST_DELETE_SUCCESS);
     }
 }
