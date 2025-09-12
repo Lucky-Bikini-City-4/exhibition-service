@@ -43,6 +43,8 @@ public record ExhibitionFindResponseDto(
         @JsonFormat(pattern = "yyyy년 MM월 dd일 HH시 mm분")
         LocalDateTime ticketCloseAt,
 
+        Boolean isActivated,
+
         List<ExhibitionFindArtistResponseDto> artists
 ) {
 
@@ -64,6 +66,7 @@ public record ExhibitionFindResponseDto(
                 .endTime(record.endTime())
                 .ticketOpenAt(record.ticketOpenAt())
                 .ticketCloseAt(record.ticketCloseAt())
+                .isActivated(record.isActivated())
                 .artists(artists)
                 .build();
     }

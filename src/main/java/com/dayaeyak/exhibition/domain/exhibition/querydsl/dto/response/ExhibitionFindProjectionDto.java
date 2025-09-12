@@ -34,6 +34,8 @@ public record ExhibitionFindProjectionDto(
 
         LocalDateTime ticketCloseAt,
 
+        Boolean isActivated,
+
         List<ExhibitionFindArtistProjectionDto> artists
 ) {
 

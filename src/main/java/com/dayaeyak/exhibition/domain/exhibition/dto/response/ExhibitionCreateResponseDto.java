@@ -49,6 +49,8 @@ public record ExhibitionCreateResponseDto(
         @JsonFormat(pattern = "yyyy년 MM월 dd일 HH시 mm분 ss초")
         LocalDateTime createdAt,
 
+        Boolean isActivated,
+
         List<ExhibitionCreateArtistInfoResponseDto> artists
 ) {
 
@@ -72,6 +74,7 @@ public record ExhibitionCreateResponseDto(
                 .ticketOpenAt(exhibition.getTicketOpenedAt())
                 .ticketCloseAt(exhibition.getTicketClosedAt())
                 .createdAt(exhibition.getCreatedAt())
+                .isActivated(exhibition.getIsActivated())
                 .artists(artists)
                 .build();
     }

@@ -48,6 +48,7 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
                                 exhibition.endTime,
                                 exhibition.ticketOpenedAt,
                                 exhibition.ticketClosedAt,
+                                exhibition.isActivated,
                                 list(Projections.constructor(ExhibitionFindArtistProjectionDto.class,
                                         artist.id,
                                         artist.name
