@@ -17,6 +17,8 @@ public record ExhibitionUpdateResponseDto(
 
         Long sellerId,
 
+        Integer price,
+
         String name,
 
         String place,
@@ -61,6 +63,7 @@ public record ExhibitionUpdateResponseDto(
         return ExhibitionUpdateResponseDto.builder()
                 .exhibitionId(exhibition.getId())
                 .sellerId(exhibition.getSellerId())
+                .price(exhibition.getPrice())
                 .name(exhibition.getName())
                 .place(exhibition.getPlace())
                 .address(exhibition.getAddress())
