@@ -31,7 +31,7 @@ public class ExhibitionController {
     @PatchMapping("/{exhibitionId}")
     public ResponseEntity<ApiResponse<ExhibitionUpdateResponseDto>> updateExhibition(
             @PathVariable Long exhibitionId,
-            @RequestBody @Valid ExhibitionUpdateRequestDto exhibitionUpdateRequestDto,
+            @RequestBody ExhibitionUpdateRequestDto exhibitionUpdateRequestDto,
             @RequestHeader("X-User-Id") Long userId
     ) {
         ExhibitionUpdateResponseDto data = exhibitionService.updateExhibition(exhibitionId, exhibitionUpdateRequestDto, userId);
