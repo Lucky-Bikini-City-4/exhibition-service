@@ -1,6 +1,7 @@
 package com.dayaeyak.exhibition.domain.exhibition;
 
 import com.dayaeyak.exhibition.common.entity.BaseEntity;
+import com.dayaeyak.exhibition.domain.artist.Artist;
 import com.dayaeyak.exhibition.domain.exhibition.dto.request.ExhibitionUpdateRequestDto;
 import com.dayaeyak.exhibition.domain.exhibition.enums.Grade;
 import com.dayaeyak.exhibition.domain.exhibition.enums.Region;
@@ -17,6 +18,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(
@@ -131,6 +134,13 @@ public class Exhibition extends BaseEntity {
         updateEndTime(dto.endTime());
         updateTicketOpenedAt(dto.ticketOpenedAt());
         updateTicketClosedAt(dto.ticketClosedAt());
+    }
+
+    public Set<String> getExhibitionArtistNameSet() {
+        return this.getArtistList().stream()
+                .map(ExhibitionArtist::getArtist)
+                .map(Artist::getName)
+                .collect(Collectors.toSet());
     }
 
     private void updatePrice(Integer price) {
