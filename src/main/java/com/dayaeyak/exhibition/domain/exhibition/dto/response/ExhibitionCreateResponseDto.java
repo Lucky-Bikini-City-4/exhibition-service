@@ -18,6 +18,8 @@ public record ExhibitionCreateResponseDto(
 
         Long sellerId,
 
+        Integer price,
+
         String name,
 
         String place,
@@ -62,6 +64,7 @@ public record ExhibitionCreateResponseDto(
         return ExhibitionCreateResponseDto.builder()
                 .exhibitionId(exhibition.getId())
                 .sellerId(exhibition.getSellerId())
+                .price(exhibition.getPrice())
                 .name(exhibition.getName())
                 .place(exhibition.getPlace())
                 .address(exhibition.getAddress())

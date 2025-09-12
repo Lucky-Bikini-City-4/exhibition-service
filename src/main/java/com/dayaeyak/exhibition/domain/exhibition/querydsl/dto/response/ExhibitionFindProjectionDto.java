@@ -12,6 +12,8 @@ import java.util.List;
 public record ExhibitionFindProjectionDto(
         Long exhibitionId,
 
+        Integer price,
+
         String name,
 
         String place,
