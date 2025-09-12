@@ -13,6 +13,8 @@ import org.hibernate.annotations.ColumnDefault;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "exhibitions")
@@ -67,6 +69,9 @@ public class Exhibition extends BaseEntity {
     @ColumnDefault("true")
     private Boolean isActivated = true;
 
+    @OneToMany(mappedBy = "exhibition", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ExhibitionArtist> artistList = new ArrayList<>();
+
     @Builder
     public Exhibition(
             Long sellerId,
@@ -94,5 +99,10 @@ public class Exhibition extends BaseEntity {
         this.endTime = endTime;
         this.ticketOpenedAt = ticketOpenedAt;
         this.ticketClosedAt = ticketClosedAt;
+    }
+
+    public void addExhibitionArtist(ExhibitionArtist exhibitionArtist) {
+        artistList.add(exhibitionArtist);
+        exhibitionArtist.linkExhibition(this);
     }
 }

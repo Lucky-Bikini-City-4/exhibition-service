@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -47,25 +48,30 @@ public class ExhibitionInternalService {
                 .collect(Collectors.toSet());
 
         List<Artist> artists = findOrCreateArtists(artistNames);
-        List<ExhibitionArtist> exhibitionArtists = mapExhibitionArtists(createdExhibition, artists);
-
-        exhibitionArtistJpaRepository.saveAll(exhibitionArtists);
+        mapExhibitionArtists(createdExhibition, artists);
 
         return ExhibitionCreateResponseDto.from(createdExhibition, artists);
     }
 
     // 조회 후 없으면 생성 후 아티스트 리스트 반환
     private List<Artist> findOrCreateArtists(Set<String> artistNames) {
-        return artistNames.stream()
-                .map(name -> artistJpaRepository.findByNameAndDeletedAtIsNull(name)
-                        .orElseGet(() -> artistJpaRepository.save(new Artist(name)))
-                )
+        List<Artist> foundArtists = artistJpaRepository.findByNameInAndDeletedAtIsNull(artistNames);
+        Set<String> existingArtists = foundArtists.stream()
+                .map(Artist::getName)
+                .collect(Collectors.toSet());
+
+        List<Artist> newArtists = artistNames.stream()
+                .filter(name -> !existingArtists.contains(name))
+                .map(Artist::new)
+                .map(artistJpaRepository::save)
+                .toList();
+
+        return Stream.concat(foundArtists.stream(), newArtists.stream())
                 .toList();
     }
 
-    private List<ExhibitionArtist> mapExhibitionArtists(Exhibition exhibition, List<Artist> artists) {
-        return artists.stream()
-                .map(artist -> new ExhibitionArtist(exhibition, artist))
-                .toList();
+    // 전시회 & 아티스트 Mapping
+    private void mapExhibitionArtists(Exhibition exhibition, List<Artist> artists) {
+        artists.forEach(artist -> exhibition.addExhibitionArtist(new ExhibitionArtist(artist)));
     }
 }
