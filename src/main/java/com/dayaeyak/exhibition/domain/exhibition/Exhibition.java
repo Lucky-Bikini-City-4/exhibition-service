@@ -119,6 +119,7 @@ public class Exhibition extends BaseEntity {
     }
 
     public void update(ExhibitionUpdateRequestDto dto) {
+        updatePrice(dto.price());
         updateName(dto.name());
         updatePlace(dto.place());
         updateAddress(dto.address());
@@ -130,6 +131,12 @@ public class Exhibition extends BaseEntity {
         updateEndTime(dto.endTime());
         updateTicketOpenedAt(dto.ticketOpenedAt());
         updateTicketClosedAt(dto.ticketClosedAt());
+    }
+
+    private void updatePrice(Integer price) {
+        if (price != null) {
+            this.price = price;
+        }
     }
 
     private void updateName(String name) {

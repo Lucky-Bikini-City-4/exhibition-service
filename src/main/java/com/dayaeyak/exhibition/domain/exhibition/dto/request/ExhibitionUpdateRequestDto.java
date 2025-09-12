@@ -16,6 +16,8 @@ public record ExhibitionUpdateRequestDto(
         @NotBlank(message = ExhibitionValidationMessage.INVALID_NAME)
         String name,
 
+        Integer price,
+
         @NotBlank(message = ExhibitionValidationMessage.INVALID_PLACE)
         String place,
 
