@@ -35,6 +35,9 @@ public class Exhibition extends BaseEntity {
     private Long id;
 
     @Column(nullable = false)
+    private Integer price;
+
+    @Column(nullable = false)
     private Long sellerId;
 
     @Column(nullable = false, length = 100)
@@ -81,6 +84,7 @@ public class Exhibition extends BaseEntity {
 
     @Builder
     public Exhibition(
+            Integer price,
             Long sellerId,
             String name,
             String place,
@@ -94,6 +98,7 @@ public class Exhibition extends BaseEntity {
             LocalDateTime ticketOpenedAt,
             LocalDateTime ticketClosedAt
     ) {
+        this.price = price;
         this.sellerId = sellerId;
         this.name = name;
         this.place = place;
