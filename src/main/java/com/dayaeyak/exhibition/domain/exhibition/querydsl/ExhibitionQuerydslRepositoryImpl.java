@@ -1,5 +1,6 @@
 package com.dayaeyak.exhibition.domain.exhibition.querydsl;
 
+import com.dayaeyak.exhibition.domain.exhibition.Exhibition;
 import com.dayaeyak.exhibition.domain.exhibition.querydsl.dto.response.ExhibitionFindArtistProjectionDto;
 import com.dayaeyak.exhibition.domain.exhibition.querydsl.dto.response.ExhibitionFindProjectionDto;
 import com.dayaeyak.exhibition.domain.exhibition.querydsl.dto.response.QExhibitionFindProjectionDto;
@@ -24,7 +25,7 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Optional<ExhibitionFindProjectionDto> findExhibitionById(Long exhibitionId) {
+    public Optional<ExhibitionFindProjectionDto> findExhibition(Long exhibitionId) {
         Map<Long, ExhibitionFindProjectionDto> record = queryFactory
                 .selectFrom(exhibition)
                 .innerJoin(exhibitionArtist).on(exhibitionArtist.exhibition.id.eq(exhibition.id))
@@ -57,5 +58,18 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
                 ));
 
         return Optional.ofNullable(record.get(exhibitionId));
+    }
+
+    @Override
+    public Optional<Exhibition> findExhibitionById(Long exhibitionId) {
+        Exhibition record = queryFactory.selectFrom(exhibition)
+                .innerJoin(exhibition.artistList, exhibitionArtist).fetchJoin()
+                .innerJoin(exhibitionArtist.artist, artist).fetchJoin()
+                .where(
+                        exhibition.id.eq(exhibitionId),
+                        exhibition.deletedAt.isNull()
+                ).fetchOne();
+
+        return Optional.ofNullable(record);
     }
 }
