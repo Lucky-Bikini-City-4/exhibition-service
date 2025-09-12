@@ -13,6 +13,8 @@ import java.util.List;
 public record ExhibitionCreateRequestDto(
         Long sellerId,
 
+        Integer price,
+
         String name,
 
         String place,

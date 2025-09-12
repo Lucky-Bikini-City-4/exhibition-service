@@ -28,6 +28,7 @@ public class ExhibitionInternalService {
     public ExhibitionCreateResponseDto createExhibition(ExhibitionCreateRequestDto dto) {
         Exhibition exhibition = Exhibition.builder()
                 .sellerId(dto.sellerId())
+                .price(dto.price())
                 .name(dto.name())
                 .place(dto.place())
                 .address(dto.address())
