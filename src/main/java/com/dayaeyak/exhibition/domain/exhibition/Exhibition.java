@@ -1,6 +1,7 @@
 package com.dayaeyak.exhibition.domain.exhibition;
 
 import com.dayaeyak.exhibition.common.entity.BaseEntity;
+import com.dayaeyak.exhibition.domain.exhibition.dto.request.ExhibitionUpdateRequestDto;
 import com.dayaeyak.exhibition.domain.exhibition.enums.Grade;
 import com.dayaeyak.exhibition.domain.exhibition.enums.Region;
 import jakarta.persistence.*;
@@ -9,13 +10,21 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "exhibitions")
+@Table(
+        name = "exhibitions",
+        indexes = {
+                @Index(name = "idx_seller_id", columnList = "seller_id"),
+        }
+)
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -64,8 +73,11 @@ public class Exhibition extends BaseEntity {
     private LocalDateTime ticketClosedAt;
 
     @Column(nullable = false)
-    @ColumnDefault("false")
-    private Boolean isActivated = false;
+    @ColumnDefault("true")
+    private Boolean isActivated = true;
+
+    @OneToMany(mappedBy = "exhibition", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ExhibitionArtist> artistList = new ArrayList<>();
 
     @Builder
     public Exhibition(
@@ -94,5 +106,94 @@ public class Exhibition extends BaseEntity {
         this.endTime = endTime;
         this.ticketOpenedAt = ticketOpenedAt;
         this.ticketClosedAt = ticketClosedAt;
+    }
+
+    public void addExhibitionArtist(ExhibitionArtist exhibitionArtist) {
+        artistList.add(exhibitionArtist);
+        exhibitionArtist.linkExhibition(this);
+    }
+
+    public void update(ExhibitionUpdateRequestDto dto) {
+        updateName(dto.name());
+        updatePlace(dto.place());
+        updateAddress(dto.address());
+        updateRegion(dto.region());
+        updateGrade(dto.grade());
+        updateStartDate(dto.startDate());
+        updateEndDate(dto.endDate());
+        updateStartTime(dto.startTime());
+        updateEndTime(dto.endTime());
+        updateTicketOpenedAt(dto.ticketOpenedAt());
+        updateTicketClosedAt(dto.ticketClosedAt());
+    }
+
+    private void updateName(String name) {
+        if (StringUtils.hasText(name)) {
+            this.name = name;
+        }
+    }
+
+    private void updatePlace(String place) {
+        if (StringUtils.hasText(place)) {
+            this.place = place;
+        }
+    }
+
+    private void updateAddress(String address) {
+        if (StringUtils.hasText(address)) {
+            this.address = address;
+        }
+    }
+
+    private void updateRegion(Region region) {
+        if (region != null) {
+            this.region = region;
+        }
+    }
+
+    private void updateGrade(Grade grade) {
+        if (grade != null) {
+            this.grade = grade;
+        }
+    }
+
+    private void updateStartDate(LocalDate startDate) {
+        if (startDate != null) {
+            this.startDate = startDate;
+        }
+    }
+
+    private void updateEndDate(LocalDate endDate) {
+        if (endDate != null) {
+            this.endDate = endDate;
+        }
+    }
+
+    private void updateStartTime(LocalTime startTime) {
+        if (startTime != null) {
+            this.startTime = startTime;
+        }
+    }
+
+    private void updateEndTime(LocalTime endTime) {
+        if (endTime != null) {
+            this.endTime = endTime;
+        }
+    }
+
+    private void updateTicketOpenedAt(LocalDateTime ticketOpenedAt) {
+        if (ticketOpenedAt != null) {
+            this.ticketOpenedAt = ticketOpenedAt;
+        }
+    }
+
+    private void updateTicketClosedAt(LocalDateTime ticketClosedAt) {
+        if (ticketClosedAt != null) {
+            this.ticketClosedAt = ticketClosedAt;
+        }
+    }
+
+    public void changeActivation() {
+        this.isActivated = !this.isActivated;
     }
 }
