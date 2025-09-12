@@ -1,11 +1,7 @@
 package com.dayaeyak.exhibition.domain.exhibition.dto.request;
 
-import com.dayaeyak.exhibition.common.constraints.ExhibitionValidationMessage;
 import com.dayaeyak.exhibition.domain.exhibition.enums.Grade;
 import com.dayaeyak.exhibition.domain.exhibition.enums.Region;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
