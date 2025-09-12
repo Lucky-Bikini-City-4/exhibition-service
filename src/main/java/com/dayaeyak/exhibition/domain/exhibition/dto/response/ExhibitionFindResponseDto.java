@@ -15,6 +15,8 @@ import java.util.List;
 public record ExhibitionFindResponseDto(
         Long exhibitionId,
 
+        Integer price,
+
         String name,
 
         String place,
@@ -55,6 +57,7 @@ public record ExhibitionFindResponseDto(
 
         return ExhibitionFindResponseDto.builder()
                 .exhibitionId(record.exhibitionId())
+                .price(record.price())
                 .name(record.name())
                 .place(record.place())
                 .address(record.address())

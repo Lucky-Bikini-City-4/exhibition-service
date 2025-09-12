@@ -38,6 +38,7 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
                 .transform(groupBy(exhibition.id).as(
                         new QExhibitionFindProjectionDto(
                                 exhibition.id,
+                                exhibition.price,
                                 exhibition.name,
                                 exhibition.place,
                                 exhibition.address,
