@@ -24,6 +24,8 @@ public class ExhibitionInternalService {
     private final ExhibitionJpaRepository exhibitionJpaRepository;
     private final ExhibitionArtistJpaRepository exhibitionArtistJpaRepository;
 
+    private final ExhibitionArtistMappingHelper exhibitionArtistMappingHelper;
+
     @Transactional
     public ExhibitionCreateResponseDto createExhibition(ExhibitionCreateRequestDto dto) {
         Exhibition exhibition = Exhibition.builder()
@@ -48,31 +50,9 @@ public class ExhibitionInternalService {
                 .map(ExhibitionCreateArtistRequestDto::name)
                 .collect(Collectors.toSet());
 
-        List<Artist> artists = findOrCreateArtists(artistNames);
-        mapExhibitionArtists(createdExhibition, artists);
+        List<Artist> artists = exhibitionArtistMappingHelper.findOrCreateArtists(artistNames);
+        exhibitionArtistMappingHelper.mapExhibitionArtists(createdExhibition, artists);
 
         return ExhibitionCreateResponseDto.from(createdExhibition, artists);
-    }
-
-    // 조회 후 없으면 생성 후 아티스트 리스트 반환
-    private List<Artist> findOrCreateArtists(Set<String> artistNames) {
-        List<Artist> foundArtists = artistJpaRepository.findByNameInAndDeletedAtIsNull(artistNames);
-        Set<String> existingArtists = foundArtists.stream()
-                .map(Artist::getName)
-                .collect(Collectors.toSet());
-
-        List<Artist> newArtists = artistNames.stream()
-                .filter(name -> !existingArtists.contains(name))
-                .map(Artist::new)
-                .map(artistJpaRepository::save)
-                .toList();
-
-        return Stream.concat(foundArtists.stream(), newArtists.stream())
-                .toList();
-    }
-
-    // 전시회 & 아티스트 Mapping
-    private void mapExhibitionArtists(Exhibition exhibition, List<Artist> artists) {
-        artists.forEach(artist -> exhibition.addExhibitionArtist(new ExhibitionArtist(artist)));
     }
 }
