@@ -7,6 +7,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public record ExhibitionUpdateRequestDto(
         String name,
@@ -35,4 +37,10 @@ public record ExhibitionUpdateRequestDto(
 
         List<ExhibitionUpdateArtistRequestDto> artists
 ) {
+
+    public Set<String> getUpdateArtistNameSet() {
+        return this.artists.stream()
+                .map(ExhibitionUpdateArtistRequestDto::name)
+                .collect(Collectors.toSet());
+    }
 }
