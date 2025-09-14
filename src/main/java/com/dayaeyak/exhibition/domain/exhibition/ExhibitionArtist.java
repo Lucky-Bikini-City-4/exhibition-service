@@ -25,8 +25,11 @@ public class ExhibitionArtist {
     @JoinColumn(name = "artist_id")
     private Artist artist;
 
-    public ExhibitionArtist(Exhibition exhibition, Artist artist) {
-        this.exhibition = exhibition;
+    public ExhibitionArtist(Artist artist) {
         this.artist = artist;
+    }
+
+    public void linkExhibition(Exhibition exhibition) {
+        this.exhibition = exhibition;
     }
 }

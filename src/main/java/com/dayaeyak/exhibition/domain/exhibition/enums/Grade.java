@@ -10,8 +10,8 @@ import java.util.stream.Stream;
 public enum Grade {
 
     ALL("ALL"),
-    R15_PLUS("R15+"),
-    R18_PLUS("R18+"),
+    R15("R15+"),
+    R18("R18+"),
     ;
 
     private final String value;
