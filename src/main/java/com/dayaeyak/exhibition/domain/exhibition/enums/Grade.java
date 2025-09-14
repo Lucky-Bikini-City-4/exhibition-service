@@ -1,5 +1,6 @@
 package com.dayaeyak.exhibition.domain.exhibition.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -10,12 +11,13 @@ import java.util.stream.Stream;
 public enum Grade {
 
     ALL("ALL"),
-    R15("R15+"),
-    R18("R18+"),
+    R15_PLUS("R15+"),
+    R18_PLUS("R18+"),
     ;
 
     private final String value;
 
+    @JsonCreator
     public static Grade of(String value) {
         return Stream.of(values())
                 .filter(m -> m.value.equalsIgnoreCase(value))
