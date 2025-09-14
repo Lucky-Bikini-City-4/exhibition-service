@@ -1,5 +1,6 @@
 package com.dayaeyak.exhibition.domain.exhibition.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +27,7 @@ public enum Region {
 
     private final String name;
 
+    @JsonCreator
     public static Region of(String name) {
         return Stream.of(Region.values())
                 .filter(region -> region.name.equalsIgnoreCase(name))

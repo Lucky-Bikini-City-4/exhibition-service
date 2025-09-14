@@ -1,28 +1,38 @@
 package com.dayaeyak.exhibition.domain.exhibition;
 
+import com.dayaeyak.exhibition.common.exception.CustomRuntimeException;
+import com.dayaeyak.exhibition.common.exception.type.ExhibitionExceptionType;
 import com.dayaeyak.exhibition.domain.artist.Artist;
-import com.dayaeyak.exhibition.domain.artist.jpa.ArtistJpaRepository;
 import com.dayaeyak.exhibition.domain.exhibition.dto.request.ExhibitionCreateArtistRequestDto;
 import com.dayaeyak.exhibition.domain.exhibition.dto.request.ExhibitionCreateRequestDto;
+import com.dayaeyak.exhibition.domain.exhibition.dto.response.ExhibitionBookingDataResponseDto;
 import com.dayaeyak.exhibition.domain.exhibition.dto.response.ExhibitionCreateResponseDto;
-import com.dayaeyak.exhibition.domain.exhibition.jpa.ExhibitionArtistJpaRepository;
+import com.dayaeyak.exhibition.domain.exhibition.dto.response.ExhibitionSearchPageResponseDto;
+import com.dayaeyak.exhibition.domain.exhibition.enums.Grade;
+import com.dayaeyak.exhibition.domain.exhibition.enums.Region;
+import com.dayaeyak.exhibition.domain.exhibition.enums.SearchType;
 import com.dayaeyak.exhibition.domain.exhibition.jpa.ExhibitionJpaRepository;
+import com.dayaeyak.exhibition.domain.exhibition.querydsl.ExhibitionQuerydslRepository;
+import com.dayaeyak.exhibition.domain.exhibition.querydsl.dto.response.ExhibitionFindBookingDataProjectionDto;
+import com.dayaeyak.exhibition.domain.exhibition.querydsl.dto.response.ExhibitionSearchProjectionDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class ExhibitionInternalService {
 
-    private final ArtistJpaRepository artistJpaRepository;
     private final ExhibitionJpaRepository exhibitionJpaRepository;
-    private final ExhibitionArtistJpaRepository exhibitionArtistJpaRepository;
+    private final ExhibitionQuerydslRepository exhibitionQuerydslRepository;
 
     private final ExhibitionArtistMappingHelper exhibitionArtistMappingHelper;
 
@@ -51,8 +61,33 @@ public class ExhibitionInternalService {
                 .collect(Collectors.toSet());
 
         List<Artist> artists = exhibitionArtistMappingHelper.findOrCreateArtists(artistNames);
-        exhibitionArtistMappingHelper.mapExhibitionArtists(createdExhibition, artists);
+        exhibition.addExhibitionArtists(artists);
 
         return ExhibitionCreateResponseDto.from(createdExhibition, artists);
+    }
+
+    public ExhibitionSearchPageResponseDto searchExhibition(
+            int page,
+            int size,
+            Region region,
+            Grade grade,
+            LocalDate startDate,
+            LocalDate endDate,
+            String keyword,
+            SearchType searchType
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<ExhibitionSearchProjectionDto> data
+                = exhibitionQuerydslRepository.searchExhibitions(pageable, region, grade, startDate, endDate, keyword, searchType);
+
+        return ExhibitionSearchPageResponseDto.from(data);
+    }
+
+    public ExhibitionBookingDataResponseDto findExhibitionOrderData(Long exhibitionId) {
+        ExhibitionFindBookingDataProjectionDto data = exhibitionQuerydslRepository.findExhibitionForBooking(exhibitionId)
+                .orElseThrow(() -> new CustomRuntimeException(ExhibitionExceptionType.EXHIBITION_NOT_FOUND));
+
+        return ExhibitionBookingDataResponseDto.from(data);
     }
 }
