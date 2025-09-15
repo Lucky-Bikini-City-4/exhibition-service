@@ -1,6 +1,8 @@
 package com.dayaeyak.exhibition.domain.exhibition;
 
 import com.dayaeyak.exhibition.common.entity.BaseEntity;
+import com.dayaeyak.exhibition.common.exception.CustomRuntimeException;
+import com.dayaeyak.exhibition.common.exception.type.ExhibitionExceptionType;
 import com.dayaeyak.exhibition.domain.artist.Artist;
 import com.dayaeyak.exhibition.domain.exhibition.dto.request.ExhibitionUpdateRequestDto;
 import com.dayaeyak.exhibition.domain.exhibition.enums.Grade;
@@ -116,6 +118,15 @@ public class Exhibition extends BaseEntity {
         this.ticketClosedAt = ticketClosedAt;
     }
 
+    public void deleteExhibitionArtistsByNames(Set<String> requestedArtistNames) {
+        this.artistList.removeIf(exhibitionArtist ->
+                requestedArtistNames.contains(exhibitionArtist.getArtist().getName()));
+    }
+
+    public void addExhibitionArtists(List<Artist> artists) {
+        artists.forEach(artist -> this.addExhibitionArtist(new ExhibitionArtist(artist)));
+    }
+
     public void addExhibitionArtist(ExhibitionArtist exhibitionArtist) {
         artistList.add(exhibitionArtist);
         exhibitionArtist.linkExhibition(this);
@@ -186,9 +197,15 @@ public class Exhibition extends BaseEntity {
     }
 
     private void updateEndDate(LocalDate endDate) {
-        if (endDate != null) {
-            this.endDate = endDate;
+        if (endDate == null) {
+            return;
         }
+
+        if (this.startDate.isAfter(endDate)) {
+            throw new CustomRuntimeException(ExhibitionExceptionType.END_DATE_BEFORE_START_DATE);
+        }
+
+        this.endDate = endDate;
     }
 
     private void updateStartTime(LocalTime startTime) {
@@ -198,9 +215,15 @@ public class Exhibition extends BaseEntity {
     }
 
     private void updateEndTime(LocalTime endTime) {
-        if (endTime != null) {
-            this.endTime = endTime;
+        if (endTime == null) {
+            return;
         }
+
+        if (this.startTime.isAfter(endTime)) {
+            throw new CustomRuntimeException(ExhibitionExceptionType.END_TIME_BEFORE_START_TIME);
+        }
+
+        this.endTime = endTime;
     }
 
     private void updateTicketOpenedAt(LocalDateTime ticketOpenedAt) {
@@ -210,9 +233,15 @@ public class Exhibition extends BaseEntity {
     }
 
     private void updateTicketClosedAt(LocalDateTime ticketClosedAt) {
-        if (ticketClosedAt != null) {
-            this.ticketClosedAt = ticketClosedAt;
+        if (ticketClosedAt == null) {
+            return;
         }
+
+        if (this.ticketOpenedAt.isAfter(ticketClosedAt)) {
+            throw new CustomRuntimeException(ExhibitionExceptionType.TICKET_CLOSE_DATE_TIME_BEFORE_OPEN_DATE_TIME);
+        }
+
+        this.ticketClosedAt = ticketClosedAt;
     }
 
     public void changeActivation() {
