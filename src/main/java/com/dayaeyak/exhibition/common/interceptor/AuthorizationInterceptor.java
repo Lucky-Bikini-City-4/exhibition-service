@@ -27,28 +27,37 @@ public class AuthorizationInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        Authorize authorize = AnnotationUtils.findAnnotation(handlerMethod.getMethod(), Authorize.class);
+        Authorize authorize = AnnotationUtils.findAnnotation(handlerMethod.getMethod(), Authorize.class); // method level
 
         if (authorize == null) {
-            authorize = AnnotationUtils.findAnnotation(handlerMethod.getBeanType(), Authorize.class);
+            authorize = AnnotationUtils.findAnnotation(handlerMethod.getBeanType(), Authorize.class); // class level
         }
 
+        // 없으면 모든 권한 가능
         if (authorize == null) {
             return true;
         }
 
+        // 명시 목적으로 bypass == true면 모든 권한 가능
         if (authorize.bypass()) {
+            return true;
+        }
+
+        // 권한 목록이 비었으면 모든 권한 가능
+        if (authorize.roles().length == 0) {
             return true;
         }
 
         String role = request.getHeader(USER_ROLE_HEADER);
 
         if (!StringUtils.hasText(role)) {
-            throw new CustomRuntimeException(CommonExceptionType.REQUEST_ACCESS_DENIED);
+            throw new CustomRuntimeException(CommonExceptionType.INVALID_USER_ROLE);
         }
 
-        boolean isExists = Arrays.stream(authorize.roles())
-                .anyMatch(r -> r.name().equalsIgnoreCase(role));
+        UserRole userRole = UserRole.of(role);
+
+        boolean isExists = Arrays.asList(authorize.roles())
+                .contains(userRole);
 
         if (!isExists) {
             throw new CustomRuntimeException(CommonExceptionType.REQUEST_ACCESS_DENIED);
