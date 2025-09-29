@@ -2,9 +2,6 @@ package com.dayaeyak.exhibition.domain.exhibition.enums;
 
 import com.dayaeyak.exhibition.common.exception.CustomRuntimeException;
 import com.dayaeyak.exhibition.common.exception.type.ExhibitionExceptionType;
-import com.dayaeyak.exhibition.domain.artist.QArtist;
-import com.dayaeyak.exhibition.domain.exhibition.QExhibition;
-import com.querydsl.core.types.dsl.StringPath;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -14,13 +11,12 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public enum SearchType {
 
-    NAME("name", QExhibition.exhibition.name),
-    PLACE("place", QExhibition.exhibition.place),
-    ARTIST("artist", QArtist.artist.name),
+    NAME("name"),
+    PLACE("place"),
+    ARTIST("artist"),
     ;
 
     private final String type;
-    private final StringPath path;
 
     public static SearchType of(String type) {
         return Arrays.stream(SearchType.values())

@@ -76,6 +76,11 @@ public class ExhibitionInternalService {
             String keyword,
             SearchType searchType
     ) {
+        // endDate만 존재하는 경우 -> 에러
+        if (startDate == null && endDate != null) {
+            throw new CustomRuntimeException(ExhibitionExceptionType.DATE_RANGE_SEARCH_NEEDS_START_DATE);
+        }
+
         Pageable pageable = PageRequest.of(page, size);
 
         Page<ExhibitionSearchProjectionDto> data
