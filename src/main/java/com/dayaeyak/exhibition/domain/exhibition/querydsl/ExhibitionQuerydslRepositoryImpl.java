@@ -205,8 +205,10 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
         }
 
         return switch (searchType) {
-            case NAME -> Expressions.booleanTemplate("MATCH({0}) AGAINST({1})", exhibition.name, keyword);
-            case PLACE -> Expressions.booleanTemplate("MATCH({0}) AGAINST({1})", exhibition.place, keyword);
+            case NAME -> Expressions.booleanTemplate(
+                    "FUNCTION('match_against', {0}, {1}) > 0", exhibition.name, keyword);
+            case PLACE -> Expressions.booleanTemplate(
+                    "FUNCTION('match_against', {0}, {1}) > 0", exhibition.place, keyword);
             case ARTIST -> artist.name.contains(keyword);
         };
     }
