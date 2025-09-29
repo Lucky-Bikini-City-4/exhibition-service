@@ -5,9 +5,11 @@ import com.dayaeyak.exhibition.domain.exhibition.enums.Grade;
 import com.dayaeyak.exhibition.domain.exhibition.enums.Region;
 import com.dayaeyak.exhibition.domain.exhibition.enums.SearchType;
 import com.dayaeyak.exhibition.domain.exhibition.querydsl.dto.response.*;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -37,7 +40,7 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
     public Optional<ExhibitionFindProjectionDto> findExhibitionDetail(Long exhibitionId) {
         Map<Long, ExhibitionFindProjectionDto> record = queryFactory
                 .selectFrom(exhibition)
-                .innerJoin(exhibitionArtist).on(exhibitionArtist.exhibition.id.eq(exhibition.id))
+                .innerJoin(exhibition.artistList, exhibitionArtist)
                 .innerJoin(exhibitionArtist.artist, artist)
                 .where(
                         exhibition.id.eq(exhibitionId),
@@ -94,10 +97,49 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
             String keyword,
             SearchType searchType
     ) {
+        BooleanBuilder dateRangeBuilder = new BooleanBuilder();
+
+        /*
+            startDate만 존재하는 경우 -> startDate 이후에 시작되거나 진행중인 전시회 목록 출력
+
+            ~ AND (
+                (exhibition.startDate >= :startDate)
+                OR (exhibition.startDate <= :startDate AND exhibition.endDate >= :startDate )
+            )
+         */
+        if (startDate != null && endDate == null) {
+            dateRangeBuilder
+                    .andAnyOf(
+                            // :startDate <= exhibition.startDate : 이후에 시작
+                            exhibition.startDate.goe(startDate),
+                            // exhibition.startDate <= :startDate <= exhibition.endDate : 진행중인 전시회
+                            exhibition.startDate.loe(startDate)
+                                    .and(exhibition.endDate.goe(startDate))
+                    );
+        }
+
+        /*
+            startDate & endDate 둘 다 존재하는 경우
+            1. exhibition.startDate :startDate :endDate exhibition.endDate
+            2. exhibition.startDate :startDate exhibition.endDate :endDate
+            3. :startDate exhibition.startDate :endDate exhibition.endDate
+
+            ~ AND (
+                exhibition.startDate <= :endDate AND exhibition.endDate >= :startDate
+            )
+         */
+        if (startDate != null && endDate != null) {
+            dateRangeBuilder
+                    .and(exhibition.startDate.loe(endDate)
+                            .and(exhibition.endDate.goe(startDate))
+                    );
+        }
+
         Predicate[] whereClauses = {
-                eqSearchType(keyword, searchType),
+                eqSearchType(searchType, keyword),
                 eqRegion(region),
                 eqGrade(grade),
+                dateRangeBuilder,
                 exhibition.isActivated.eq(true),
                 exhibition.deletedAt.isNull()
         };
@@ -119,12 +161,15 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
                 .innerJoin(exhibition.artistList, exhibitionArtist)
                 .innerJoin(exhibitionArtist.artist, artist)
                 .where(whereClauses)
+                .distinct()
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
         JPAQuery<Long> count = queryFactory.select(exhibition.count())
                 .from(exhibition)
+                .innerJoin(exhibition.artistList, exhibitionArtist)
+                .innerJoin(exhibitionArtist.artist, artist)
                 .where(whereClauses);
 
         return PageableExecutionUtils.getPage(records, pageable, count::fetchOne);
@@ -154,11 +199,15 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
         return grade != null ? exhibition.grade.eq(grade) : null;
     }
 
-    private BooleanExpression eqEndDate(LocalDate endDate) {
-        return endDate != null ? exhibition.startDate.after(endDate) : null;
-    }
+    private BooleanExpression eqSearchType(SearchType searchType, String keyword) {
+        if (searchType == null || !StringUtils.hasText(keyword)) {
+            return null;
+        }
 
-    private BooleanExpression eqSearchType(String keyword, SearchType searchType) {
-        return searchType != null ? searchType.getPath().contains(keyword) : null;
+        return switch (searchType) {
+            case NAME -> Expressions.booleanTemplate("MATCH({0}) AGAINST({1})", exhibition.name, keyword);
+            case PLACE -> Expressions.booleanTemplate("MATCH({0}) AGAINST({1})", exhibition.place, keyword);
+            case ARTIST -> artist.name.contains(keyword);
+        };
     }
 }

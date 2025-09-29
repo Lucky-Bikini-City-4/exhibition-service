@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum CommonExceptionType implements ExceptionType {
 
+    INVALID_USER_ID(HttpStatus.BAD_REQUEST, "유효하지 않은 유저 ID입니다."),
+    INVALID_USER_ROLE(HttpStatus.BAD_REQUEST, "유효하지 않은 유저 권한입니다."),
     REQUEST_ACCESS_DENIED(HttpStatus.FORBIDDEN, "요청 접근 권한이 부족합니다."),
     ;
 
