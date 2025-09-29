@@ -3,6 +3,9 @@ spring:
     name: exhibition-service
 
   profiles:
-    active: dev
+    active: local
+    group:
+      local: dev
+      deploy: prod
 
 
