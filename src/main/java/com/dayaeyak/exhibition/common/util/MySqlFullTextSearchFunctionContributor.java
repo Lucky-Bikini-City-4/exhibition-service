@@ -9,9 +9,9 @@ public class MySqlFullTextSearchFunctionContributor implements FunctionContribut
 
     @Override
     public void contributeFunctions(FunctionContributions functionContributions) {
-        BasicType<Double> resultType = functionContributions.getTypeConfiguration()
+        BasicType<Boolean> resultType = functionContributions.getTypeConfiguration()
                 .getBasicTypeRegistry()
-                .resolve(StandardBasicTypes.DOUBLE);
+                .resolve(StandardBasicTypes.BOOLEAN);
 
         functionContributions.getFunctionRegistry()
                 .registerPattern("match_against", "MATCH(?1) AGAINST(?2)", resultType);
