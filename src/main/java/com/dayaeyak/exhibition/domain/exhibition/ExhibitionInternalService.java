@@ -66,6 +66,7 @@ public class ExhibitionInternalService {
         return ExhibitionCreateResponseDto.from(createdExhibition, artists);
     }
 
+    @Transactional(readOnly = true)
     public ExhibitionSearchPageResponseDto searchExhibition(
             int page,
             int size,

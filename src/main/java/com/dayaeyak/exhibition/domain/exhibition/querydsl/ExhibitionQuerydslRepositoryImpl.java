@@ -10,6 +10,7 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -97,22 +98,78 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
             String keyword,
             SearchType searchType
     ) {
+        Predicate[] whereClauses = {
+                eqSearchType(searchType, keyword),
+                eqRegion(region),
+                eqGrade(grade),
+                buildDateSearchCondition(startDate, endDate),
+                exhibition.isActivated.eq(true),
+                exhibition.deletedAt.isNull()
+        };
+
+        JPAQuery<ExhibitionSearchProjectionDto> query = queryFactory
+                .selectDistinct(new QExhibitionSearchProjectionDto(
+                        exhibition.id,
+                        exhibition.name,
+                        exhibition.place,
+                        exhibition.region,
+                        exhibition.grade,
+                        exhibition.startDate,
+                        exhibition.endDate,
+                        exhibition.startTime,
+                        exhibition.endTime,
+                        exhibition.ticketOpenedAt,
+                        exhibition.ticketClosedAt
+                ))
+                .from(exhibition)
+                .where(whereClauses)
+                .orderBy(exhibition.startDate.asc());
+
+        applyArtistJoin(query, searchType, keyword);
+
+        List<ExhibitionSearchProjectionDto> records = query
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        JPAQuery<Long> countQuery = queryFactory.selectDistinct(exhibition.count())
+                .from(exhibition)
+                .where(whereClauses);
+
+        applyArtistJoin(countQuery, searchType, keyword);
+
+        return PageableExecutionUtils.getPage(records, pageable, countQuery::fetchOne);
+    }
+
+    @Override
+    public Optional<ExhibitionFindBookingDataProjectionDto> findExhibitionForBooking(Long exhibitionId) {
+        ExhibitionFindBookingDataProjectionDto record = queryFactory.select(new QExhibitionFindBookingDataProjectionDto(
+                        exhibition.price,
+                        exhibition.grade
+                ))
+                .from(exhibition)
+                .where(
+                        exhibition.id.eq(exhibitionId),
+                        exhibition.deletedAt.isNull()
+                )
+                .fetchOne();
+
+        return Optional.ofNullable(record);
+    }
+
+    private BooleanBuilder buildDateSearchCondition(LocalDate startDate, LocalDate endDate) {
         BooleanBuilder dateRangeBuilder = new BooleanBuilder();
 
         /*
             startDate만 존재하는 경우 -> startDate 이후에 시작되거나 진행중인 전시회 목록 출력
 
             ~ AND (
-                (exhibition.startDate >= :startDate)
-                OR (exhibition.startDate <= :startDate AND exhibition.endDate >= :startDate )
+                exhibition.startDate <= :startDate AND exhibition.endDate >= :startDate
             )
          */
         if (startDate != null && endDate == null) {
             dateRangeBuilder
-                    .andAnyOf(
-                            // :startDate <= exhibition.startDate : 이후에 시작
-                            exhibition.startDate.goe(startDate),
-                            // exhibition.startDate <= :startDate <= exhibition.endDate : 진행중인 전시회
+                    .and(
                             exhibition.startDate.loe(startDate)
                                     .and(exhibition.endDate.goe(startDate))
                     );
@@ -135,60 +192,15 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
                     );
         }
 
-        Predicate[] whereClauses = {
-                eqSearchType(searchType, keyword),
-                eqRegion(region),
-                eqGrade(grade),
-                dateRangeBuilder,
-                exhibition.isActivated.eq(true),
-                exhibition.deletedAt.isNull()
-        };
-
-        List<ExhibitionSearchProjectionDto> records = queryFactory.select(new QExhibitionSearchProjectionDto(
-                        exhibition.id,
-                        exhibition.name,
-                        exhibition.place,
-                        exhibition.region,
-                        exhibition.grade,
-                        exhibition.startDate,
-                        exhibition.endDate,
-                        exhibition.startTime,
-                        exhibition.endTime,
-                        exhibition.ticketOpenedAt,
-                        exhibition.ticketClosedAt
-                ))
-                .from(exhibition)
-                .innerJoin(exhibition.artistList, exhibitionArtist)
-                .innerJoin(exhibitionArtist.artist, artist)
-                .where(whereClauses)
-                .distinct()
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        JPAQuery<Long> count = queryFactory.select(exhibition.count())
-                .from(exhibition)
-                .innerJoin(exhibition.artistList, exhibitionArtist)
-                .innerJoin(exhibitionArtist.artist, artist)
-                .where(whereClauses);
-
-        return PageableExecutionUtils.getPage(records, pageable, count::fetchOne);
+        return dateRangeBuilder;
     }
 
-    @Override
-    public Optional<ExhibitionFindBookingDataProjectionDto> findExhibitionForBooking(Long exhibitionId) {
-        ExhibitionFindBookingDataProjectionDto record = queryFactory.select(new QExhibitionFindBookingDataProjectionDto(
-                        exhibition.price,
-                        exhibition.grade
-                ))
-                .from(exhibition)
-                .where(
-                        exhibition.id.eq(exhibitionId),
-                        exhibition.deletedAt.isNull()
-                )
-                .fetchOne();
-
-        return Optional.ofNullable(record);
+    private <T> void applyArtistJoin(JPAQuery<T> query, SearchType searchType, String keyword) {
+        if (searchType == SearchType.ARTIST && StringUtils.hasText(keyword)) {
+            query
+                    .innerJoin(exhibition.artistList, exhibitionArtist)
+                    .innerJoin(exhibitionArtist.artist, artist);
+        }
     }
 
     private BooleanExpression eqRegion(Region region) {
@@ -204,12 +216,19 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
             return null;
         }
 
+//        return switch (searchType) {
+//            case NAME -> exhibition.name.contains(keyword);
+//            case PLACE -> exhibition.place.contains(keyword);
+//            case ARTIST -> artist.name.contains(keyword);
+//        };
+
         return switch (searchType) {
             case NAME -> Expressions.booleanTemplate(
                     "FUNCTION('match_against', {0}, {1}) > 0", exhibition.name, keyword);
             case PLACE -> Expressions.booleanTemplate(
                     "FUNCTION('match_against', {0}, {1}) > 0", exhibition.place, keyword);
-            case ARTIST -> artist.name.contains(keyword);
+            case ARTIST -> Expressions.booleanTemplate(
+                    "FUNCTION('match_against', {0}, {1}) > 0", artist.name, keyword);
         };
     }
 }
