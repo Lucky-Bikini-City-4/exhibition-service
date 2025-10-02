@@ -5,7 +5,7 @@
 - Spring Boot 3.5.5
   - Spring Boot Starter Data JPA
   - Hibernate 6.6.26
-- MYSQL 8.0.43
+- MySQL 8.0.14
 - QueryDSL 5.1.0
 - Spring Cloud
   - Eureka Client 4.3.0
