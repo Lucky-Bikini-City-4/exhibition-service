@@ -10,7 +10,6 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -98,6 +97,8 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
             String keyword,
             SearchType searchType
     ) {
+        boolean isArtistSearch = isArtistSearch(searchType, keyword);
+
         Predicate[] whereClauses = {
                 eqSearchType(searchType, keyword),
                 eqRegion(region),
@@ -107,36 +108,20 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
                 exhibition.deletedAt.isNull()
         };
 
-        JPAQuery<ExhibitionSearchProjectionDto> query = queryFactory
-                .selectDistinct(new QExhibitionSearchProjectionDto(
-                        exhibition.id,
-                        exhibition.name,
-                        exhibition.place,
-                        exhibition.region,
-                        exhibition.grade,
-                        exhibition.startDate,
-                        exhibition.endDate,
-                        exhibition.startTime,
-                        exhibition.endTime,
-                        exhibition.ticketOpenedAt,
-                        exhibition.ticketClosedAt
-                ))
-                .from(exhibition)
-                .where(whereClauses)
-                .orderBy(exhibition.startDate.asc());
+        JPAQuery<ExhibitionSearchProjectionDto> query = createSearchQuery(isArtistSearch);
 
-        applyArtistJoin(query, searchType, keyword);
+        applyArtistJoin(query, isArtistSearch);
 
         List<ExhibitionSearchProjectionDto> records = query
+                .where(whereClauses)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        JPAQuery<Long> countQuery = queryFactory.selectDistinct(exhibition.count())
-                .from(exhibition)
+        JPAQuery<Long> countQuery = createSearchCountQuery(isArtistSearch)
                 .where(whereClauses);
 
-        applyArtistJoin(countQuery, searchType, keyword);
+        applyArtistJoin(countQuery, isArtistSearch);
 
         return PageableExecutionUtils.getPage(records, pageable, countQuery::fetchOne);
     }
@@ -155,6 +140,48 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
                 .fetchOne();
 
         return Optional.ofNullable(record);
+    }
+
+    private JPAQuery<ExhibitionSearchProjectionDto> createSearchQuery(boolean isArtistSearch) {
+        QExhibitionSearchProjectionDto projection = new QExhibitionSearchProjectionDto(
+                exhibition.id,
+                exhibition.name,
+                exhibition.place,
+                exhibition.region,
+                exhibition.grade,
+                exhibition.startDate,
+                exhibition.endDate,
+                exhibition.startTime,
+                exhibition.endTime,
+                exhibition.ticketOpenedAt,
+                exhibition.ticketClosedAt
+        );
+
+        if (isArtistSearch) {
+            return queryFactory
+                    .selectDistinct(projection)
+                    .from(exhibition);
+        }
+
+        return queryFactory
+                .select(projection)
+                .from(exhibition);
+    }
+
+    private JPAQuery<Long> createSearchCountQuery(boolean isArtistSearch) {
+        if (isArtistSearch) {
+            return queryFactory
+                    .selectDistinct(exhibition.count())
+                    .from(exhibition);
+        }
+
+        return queryFactory
+                .select(exhibition.count())
+                .from(exhibition);
+    }
+
+    private boolean isArtistSearch(SearchType searchType, String keyword) {
+        return searchType == SearchType.ARTIST && StringUtils.hasText(keyword);
     }
 
     private BooleanBuilder buildDateSearchCondition(LocalDate startDate, LocalDate endDate) {
@@ -195,8 +222,8 @@ public class ExhibitionQuerydslRepositoryImpl implements ExhibitionQuerydslRepos
         return dateRangeBuilder;
     }
 
-    private <T> void applyArtistJoin(JPAQuery<T> query, SearchType searchType, String keyword) {
-        if (searchType == SearchType.ARTIST && StringUtils.hasText(keyword)) {
+    private <T> void applyArtistJoin(JPAQuery<T> query, boolean isArtistSearch) {
+        if (isArtistSearch) {
             query
                     .innerJoin(exhibition.artistList, exhibitionArtist)
                     .innerJoin(exhibitionArtist.artist, artist);
