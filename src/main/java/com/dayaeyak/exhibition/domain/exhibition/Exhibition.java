@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
         name = "exhibitions",
         indexes = {
                 @Index(name = "idx_seller_id", columnList = "seller_id"),
+                @Index(name = "idx_composite_start_end_date", columnList = "start_date, end_date")
         }
 )
 

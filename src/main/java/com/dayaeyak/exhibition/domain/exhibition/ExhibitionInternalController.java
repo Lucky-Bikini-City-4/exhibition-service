@@ -29,13 +29,13 @@ public class ExhibitionInternalController {
     @GetMapping
     public ExhibitionSearchPageResponseDto searchExhibition(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) Region region,
             @RequestParam(required = false) Grade grade,
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
-            @RequestParam String keyword,
-            @RequestParam SearchType searchType
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) SearchType searchType
     ) {
         return exhibitionInternalService.searchExhibition(page, size, region, grade, startDate, endDate, keyword, searchType);
     }
