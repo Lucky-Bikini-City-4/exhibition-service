@@ -22,7 +22,7 @@ https://docs.google.com/spreadsheets/d/1erfJV-eh3TtUMcaTJLLNou-vhwnxBvB4MV5cJ72-
 2. 전체 데이터 수 50만건
 3. 테스트 시 DB 커넥션 풀에 대기하지 않기 위해 쓰레드 당 10초 Ramp-up
 
-- Fulltext Index
+### Fulltext Index
 
 CASE #1
 
@@ -63,7 +63,7 @@ CASE #2
     - 아티스트 이름 검색
     - Using filesort 제거
 
-- Composite Index
+### Composite Index
 
 CASE #1
 ![3-1-1](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2Fbmmqh9%2FbtsQZY4kVQz%2FAAAAAAAAAAAAAAAAAAAAAElQtCElmD75BC9ordN8dR4uajaDWLycs1UtqchVHTJm%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1761922799%26allow_ip%3D%26allow_referer%3D%26signature%3DuolYvfLOyNX87LOsdv6ZKrhnUBw%253D)
